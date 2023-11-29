@@ -24,11 +24,11 @@ jobs:
           key: ${{ secrets.SSHKEY }}
           port: 22
           script: |
-            cd /var/www/html/gps
+            cd /var/www/html/gps-tracking
             git checkout .
             git pull origin main
             composer install 
-            php bin/console d:s:u -f --complete
+            php bin/console doctrine:migrations:migrate
             php bin/console c:c
             chmod -R 777 /var/www/html/gps/var/cache
             echo "Job Done!"
