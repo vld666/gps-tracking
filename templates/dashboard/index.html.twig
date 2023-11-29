@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="example-wrapper">
+    <h1>GPS Tracker</h1>
+
+    <p>GPS Tracker is a simple application that allows you to track your location and share it with your friends.</p>
+
+    <div class="table-container">
+            <table class="table">
+            <thead>
+                <tr>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>GPS Time</th>
+                    <th>Satellites Number</th>
+                    <th>Altitude</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for coordinate in gpsCoordinates %}
+                    <tr>
+                        <td>{{ coordinate.latitude }}</td>
+                        <td>{{ coordinate.longitude }}</td>
+                        <td>{{ coordinate.gpsTime|date }}</td>
+                        <td>{{ coordinate.satellitesNo }}</td>
+                        <td>{{ coordinate.altitude }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}
