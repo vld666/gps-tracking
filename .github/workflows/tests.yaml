@@ -60,7 +60,7 @@ jobs:
 
             - name: "Require symfony/thanks"
               run: composer config --no-plugins allow-plugins.symfony/thanks true
-            
+
             - run: composer update
 
             - name: "Install PHPUnit"
