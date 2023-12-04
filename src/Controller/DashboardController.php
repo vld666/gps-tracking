@@ -14,7 +14,7 @@ class DashboardController extends AbstractController
     public function index(EntityManagerInterface $entityManager): Response
     {
         $allCoordinates = $entityManager->getRepository(GpsCoordinate::class)->findAll();
-        
+
         return $this->render('dashboard/index.html.twig', [
             'gpsCoordinates' => $allCoordinates,
         ]);

@@ -19,7 +19,7 @@ services:
     build:
       context: ./docker
     ports:
-      - '9000:9000'
+      - '9005:9005'
     volumes:
       - ./:/var/www/html
     depends_on:
