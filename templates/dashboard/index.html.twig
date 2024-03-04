@@ -7,7 +7,7 @@
     <p>GPS Tracker is a simple application that allows you to track your location and share it with your friends.</p>
 
     <div class="table-container">
-            <table class="table">
+        <table class="table">
             <thead>
                 <tr>
                     <th>Latitude</th>
@@ -29,7 +29,70 @@
                 {% endfor %}
             </tbody>
         </table>
+
     </div>
+
+    <div id="map" style="width: 90%; height: 700px;"></div>
 
 </div>
 {% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js' crossorigin="anonymous"></script>
+<script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoidmxkNjY2IiwiYSI6ImNsdGN1Y2FiOTIzMHAybXF1anJqZ3R6cGEifQ.JrV69OaLK_F9U2dfEJaJSg';
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12', // style URL
+        center: [26.15478740, 44.37819560], // starting position
+        zoom: 17 // starting zoom
+    });
+    map.addControl(new mapboxgl.NavigationControl());
+    map.addControl(new mapboxgl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+        trackUserLocation: true,
+        showUserHeading: true
+    }));
+    
+    map.on('load', () => {
+        map.addSource('route', {
+            'type': 'geojson',
+            'data': {
+                'type': 'Feature',
+                'properties': {},
+                'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [
+                        [26.15411530, 44.37830200],
+                        [26.15478740, 44.37819560],
+                        [26.15421230, 44.37832800]
+                    ]
+                }
+            }
+        });
+        map.addLayer({
+            'id': 'route',
+            'type': 'line',
+            'source': 'route',
+            'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            'paint': {
+                'line-color': '#ff0000',
+                'line-width': 3
+            }
+        });
+    });
+
+</script>
+
+{% endblock %}
+{% block stylesheets %}
+{{ parent() }}
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' crossorigin="anonymous" />
+{% endblock %}
+
