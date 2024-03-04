@@ -29,6 +29,7 @@
                 {% endfor %}
             </tbody>
         </table>
+
         <div id="map" style="width: 100%; height: 700px;"></div>
 
     </div>
@@ -44,7 +45,7 @@
     mapboxgl.accessToken = 'pk.eyJ1IjoidmxkNjY2IiwiYSI6ImNsdGN1Y2FiOTIzMHAybXF1anJqZ3R6cGEifQ.JrV69OaLK_F9U2dfEJaJSg';
     var map = new mapboxgl.Map({
         container: 'map',
-        style: 'mapbox://styles/mapbox/dark-v11', // style URL
+        style: 'mapbox://styles/mapbox/navigation-night-v1', // style URL
         center: [26.15478740, 44.37819560], // starting position
         zoom: 17 // starting zoom
     });
@@ -65,11 +66,7 @@
                 'properties': {},
                 'geometry': {
                     'type': 'LineString',
-                    'coordinates': [
-                        [26.15411530, 44.37830200],
-                        [26.15478740, 44.37819560],
-                        [26.15421230, 44.37832800]
-                    ]
+                    'coordinates': {{ jsonCoordinates|raw }},
                 }
             }
         });

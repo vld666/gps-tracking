@@ -13,10 +13,18 @@ class DashboardController extends AbstractController
     #[Route('/', name: 'homepage')]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        $allCoordinates = $entityManager->getRepository(GpsCoordinate::class)->findAll();
+        $allCoordinates = $entityManager->getRepository(GpsCoordinate::class)->findBy([], ['gpsTime' => 'DESC']);
+
+        $createdCoordinates = [];
+        foreach ($allCoordinates as $coordinate) {
+            $createdCoordinates[] = [
+                $coordinate->getLongitude(), $coordinate->getLatitude()
+            ];
+        }
 
         return $this->render('dashboard/index.html.twig', [
             'gpsCoordinates' => $allCoordinates,
+            'jsonCoordinates' => json_encode($createdCoordinates),
         ]);
     }
 }

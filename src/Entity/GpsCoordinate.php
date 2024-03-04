@@ -23,10 +23,10 @@ class GpsCoordinate
     private ?string $longitude = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $gps_time = null;
+    private ?\DateTimeInterface $gpsTime = null;
 
     #[ORM\Column]
-    private ?int $satellites_no = null;
+    private ?int $satellitesNo = null;
 
     #[ORM\Column]
     private ?int $altitude = null;
@@ -62,24 +62,24 @@ class GpsCoordinate
 
     public function getGpsTime(): ?\DateTimeInterface
     {
-        return $this->gps_time;
+        return $this->gpsTime;
     }
 
-    public function setGpsTime(\DateTimeInterface $gps_time): static
+    public function setGpsTime(\DateTimeInterface $gpsTime): static
     {
-        $this->gps_time = $gps_time;
+        $this->gpsTime = $gpsTime;
 
         return $this;
     }
 
     public function getSatellitesNo(): ?int
     {
-        return $this->satellites_no;
+        return $this->satellitesNo;
     }
 
-    public function setSatellitesNo(int $satellites_no): static
+    public function setSatellitesNo(int $satellitesNo): static
     {
-        $this->satellites_no = $satellites_no;
+        $this->satellitesNo = $satellitesNo;
 
         return $this;
     }
