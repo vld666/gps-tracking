@@ -13,6 +13,16 @@ class DashboardController extends AbstractController
     #[Route('/', name: 'homepage')]
     public function index(EntityManagerInterface $entityManager): Response
     {
+        $allCoordinates = $entityManager->getRepository(GpsCoordinate::class)->findOneBy([], ['gpsTime' => 'DESC']);
+
+        return $this->render('dashboard/index.html.twig', [
+            'currentPosition' => $allCoordinates,
+        ]);
+    }
+
+    #[Route('/history', name: 'histoy')]
+    public function history(EntityManagerInterface $entityManager): Response
+    {
         $allCoordinates = $entityManager->getRepository(GpsCoordinate::class)->findBy([], ['gpsTime' => 'DESC']);
 
         $createdCoordinates = [];
@@ -22,9 +32,10 @@ class DashboardController extends AbstractController
             ];
         }
 
-        return $this->render('dashboard/index.html.twig', [
+        return $this->render('dashboard/history.html.twig', [
             'gpsCoordinates' => $allCoordinates,
             'jsonCoordinates' => json_encode($createdCoordinates),
+            'currentPosition' => reset($allCoordinates),
         ]);
     }
 }

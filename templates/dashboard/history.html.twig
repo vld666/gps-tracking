@@ -1,0 +1,196 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <h1>GPS Tracker</h1>
+
+        <p>GPS Tracker is a simple application that allows you to track your location and share it with your friends.</p>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>GPS Time</th>
+                    <th>Satellites Number</th>
+                    <th>Altitude</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for coordinate in gpsCoordinates %}
+                    <tr>
+                        <td>{{ coordinate.latitude }}</td>
+                        <td>{{ coordinate.longitude }}</td>
+                        <td>{{ coordinate.gpsTime|date }}</td>
+                        <td>{{ coordinate.satellitesNo }}</td>
+                        <td>{{ coordinate.altitude }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <div id="map" style="width: 100%; height: 700px;"></div>
+
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js' crossorigin="anonymous"></script>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoidmxkNjY2IiwiYSI6ImNsdGN1Y2FiOTIzMHAybXF1anJqZ3R6cGEifQ.JrV69OaLK_F9U2dfEJaJSg';
+        var map = new mapboxgl.Map({
+            container: 'map',
+            //style: 'mapbox://styles/mapbox/navigation-night-v1', // style URL
+            style: 'mapbox://styles/mapbox/streets-v12', // style URL
+            center: [{{ currentPosition.longitude }}, {{ currentPosition.latitude }}], // starting position
+            //center: [26.15478740, 44.37819560], // starting position
+            zoom: 15 // starting zoom
+        });
+
+        map.addControl(new mapboxgl.NavigationControl())
+            .addControl(new mapboxgl.GeolocateControl({
+                positionOptions: {
+                    enableHighAccuracy: true
+                },
+                trackUserLocation: true,
+                showUserHeading: true
+            }));
+
+        const size = 200;
+
+        // This implements `StyleImageInterface`
+        // to draw a pulsing dot icon on the map.
+        const pulsingDot = {
+            width: size,
+            height: size,
+            data: new Uint8Array(size * size * 4),
+
+            // When the layer is added to the map,
+            // get the rendering context for the map canvas.
+            onAdd: function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = this.width;
+                canvas.height = this.height;
+                this.context = canvas.getContext('2d');
+            },
+
+            // Call once before every frame where the icon will be used.
+            render: function () {
+                const duration = 1000;
+                const t = (performance.now() % duration) / duration;
+
+                const radius = (size / 2) * 0.3;
+                const outerRadius = (size / 2) * 0.7 * t + radius;
+                const context = this.context;
+
+                // Draw the outer circle.
+                context.clearRect(0, 0, this.width, this.height);
+                context.beginPath();
+                context.arc(
+                    this.width / 2,
+                    this.height / 2,
+                    outerRadius,
+                    0,
+                    Math.PI * 2
+                );
+                context.fillStyle = `rgba(255, 200, 200, ${1 - t})`;
+                context.fill();
+
+                // Draw the inner circle.
+                context.beginPath();
+                context.arc(
+                    this.width / 2,
+                    this.height / 2,
+                    radius,
+                    0,
+                    Math.PI * 2
+                );
+                context.fillStyle = 'rgba(255, 100, 100, 1)';
+                context.strokeStyle = 'white';
+                context.lineWidth = 2 + 4 * (1 - t);
+                context.fill();
+                context.stroke();
+
+                // Update this image's data with data from the canvas.
+                this.data = context.getImageData(
+                    0,
+                    0,
+                    this.width,
+                    this.height
+                ).data;
+
+                // Continuously repaint the map, resulting
+                // in the smooth animation of the dot.
+                map.triggerRepaint();
+
+                // Return `true` to let the map know that the image was updated.
+                return true;
+            }
+        };
+
+
+        map.on('load', () => {
+            map.addSource('route', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': {{ jsonCoordinates|raw }},
+                    }
+                }
+            });
+            map.addLayer({
+                'id': 'route',
+                'type': 'line',
+                'source': 'route',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#ff0000',
+                    'line-width': 3
+                }
+            });
+
+            map.addImage('pulsing-dot', pulsingDot, { pixelRatio: 2 });
+
+            map.addSource('dot-point', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'FeatureCollection',
+                    'features': [
+                        {
+                            'type': 'Feature',
+                            'geometry': {
+                                'type': 'Point',
+                                'coordinates': [{{ currentPosition.longitude }}, {{ currentPosition.latitude }}] // icon position [lng, lat]
+                            }
+                        }
+                    ]
+                }
+            });
+            map.addLayer({
+                'id': 'layer-with-pulsing-dot',
+                'type': 'symbol',
+                'source': 'dot-point',
+                'layout': {
+                    'icon-image': 'pulsing-dot'
+                }
+            });
+        });
+
+    </script>
+
+{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' crossorigin="anonymous" />
+{% endblock %}
+

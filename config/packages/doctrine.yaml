@@ -24,9 +24,20 @@ doctrine:
 
 when@test:
     doctrine:
+        orm:
+            controller_resolver:
+                auto_mapping: true
+            auto_generate_proxy_classes: true
+            proxy_dir: '%kernel.cache_dir%/doctrine/orm/Proxies'
         dbal:
-            # "TEST_TOKEN" is typically set by ParaTest
-            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+            default_connection: default
+            connections:
+                default:
+                    # Your other configuration options here
+                    options:
+                        # Enable savepoints for nested transactions
+                        setNestTransactionsWithSavepoints: true
+
 
 when@prod:
     doctrine:
