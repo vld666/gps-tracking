@@ -2,7 +2,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\GpsCoordinate;
 use App\Factory\GpsCoordinateFactory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;

@@ -18,8 +18,10 @@
 
 {% block javascripts %}
 {{ parent() }}
-<script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js' crossorigin="anonymous"></script>
-<script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js' crossorigin="anonymous"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
+
+    <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoidmxkNjY2IiwiYSI6ImNsdGN1Y2FiOTIzMHAybXF1anJqZ3R6cGEifQ.JrV69OaLK_F9U2dfEJaJSg';
     var map = new mapboxgl.Map({
         container: 'map',

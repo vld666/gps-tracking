@@ -5,7 +5,6 @@ namespace App\Factory;
 
 use App\Entity\GpsCoordinate;
 use Zenstruck\Foundry\ModelFactory;
-use Zenstruck\Foundry\Proxy;
 
 /**
  * @extends ModelFactory<GpsCoordinate>
