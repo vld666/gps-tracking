@@ -1,5 +1,4 @@
 <?php
-// src/Factory/GpsCoordinateFactory.php
 
 namespace App\Factory;
 
@@ -25,10 +24,10 @@ final class GpsCoordinateFactory extends ModelFactory
     protected function initialize(): self
     {
         return $this
-            // ->afterInstantiate(function(GpsCoordinate $gpsCoordinate): void {
-            //     // Customize after instantiation
-            // })
-            ;
+            ->afterInstantiate(function(GpsCoordinate $gpsCoordinate) {
+                $gpsCoordinate->setLatitude((string) $gpsCoordinate->getLatitude());
+                $gpsCoordinate->setLongitude((string) $gpsCoordinate->getLongitude());
+            });
     }
 
     protected static function getClass(): string
