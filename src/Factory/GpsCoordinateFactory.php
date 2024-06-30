@@ -24,7 +24,7 @@ final class GpsCoordinateFactory extends ModelFactory
     protected function initialize(): self
     {
         return $this
-            ->afterInstantiate(function(GpsCoordinate $gpsCoordinate) {
+            ->afterInstantiate(function (GpsCoordinate $gpsCoordinate) {
                 $gpsCoordinate->setLatitude((string) $gpsCoordinate->getLatitude());
                 $gpsCoordinate->setLongitude((string) $gpsCoordinate->getLongitude());
             });
