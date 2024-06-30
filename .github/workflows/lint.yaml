@@ -1,4 +1,4 @@
-name: "Lint"
+name: "Tests and Lint"
 
 on:
     pull_request:
@@ -8,24 +8,64 @@ on:
 
 env:
     fail-fast: true
-
+    PHPUNIT_FLAGS: "-v"
+    SYMFONY_PHPUNIT_DIR: "$HOME/symfony-bridge/.phpunit"
+    SYMFONY_REQUIRE: ">=6.0"
+    SYMFONY_DEPRECATIONS_HELPER: 7
 
 jobs:
-    php-cs-fixer:
-        name: PHP-CS-Fixer
-        runs-on: ubuntu-latest
+    test:
+        name: "${{ matrix.operating-system }} / PHP ${{ matrix.php-version }}"
+        runs-on: ${{ matrix.operating-system }}
+        continue-on-error: false
+
+        strategy:
+            matrix:
+                operating-system: ['ubuntu-latest', 'macos-latest', 'windows-latest']
+                php-version: ['8.2']
+
         steps:
             - name: "Checkout code"
-              uses: actions/checkout@v2
+              uses: actions/checkout@v2.3.3
 
-            - name: PHP-CS-Fixer
-              uses: docker://oskarstark/php-cs-fixer-ga
+            - name: "Install PHP with extensions"
+              uses: shivammathur/setup-php@2.7.0
               with:
-                  args: --diff --dry-run
+                  coverage: "none"
+                  extensions: "intl, mbstring, pdo_sqlite"
+                  php-version: ${{ matrix.php-version }}
+                  tools: composer:v2
 
-    linters:
-        name: Linters
+            - name: "Add PHPUnit matcher"
+              run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+            - name: "Set composer cache directory"
+              id: composer-cache
+              run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+            - name: "Cache composer"
+              uses: actions/cache@v2.1.2
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('composer.json') }}
+                  restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-composer-
+
+            - name: "Install dependencies"
+              run: composer install --prefer-dist --no-progress --no-suggest
+
+            - name: "Install PHPUnit"
+              run: vendor/bin/simple-phpunit install
+
+            - name: "PHPUnit version"
+              run: vendor/bin/simple-phpunit --version
+
+            - name: "Run tests"
+              run: vendor/bin/simple-phpunit ${{ env.PHPUNIT_FLAGS }}
+
+    lint:
+        name: "Lint / PHP ${{ matrix.php-version }}"
         runs-on: ubuntu-latest
+
         strategy:
             matrix:
                 php-version: ['8.2']
@@ -38,7 +78,7 @@ jobs:
               uses: shivammathur/setup-php@2.7.0
               with:
                   coverage: "none"
-                  extensions: intl
+                  extensions: "intl, mbstring, pdo_sqlite"
                   php-version: ${{ matrix.php-version }}
                   tools: composer:v2
 
@@ -50,48 +90,14 @@ jobs:
               uses: actions/cache@v2.1.2
               with:
                   path: ${{ steps.composer-cache.outputs.dir }}
-                  key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('composer.lock') }}
+                  key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('composer.json') }}
                   restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-composer-
 
-            - name: "Composer install"
-              run: composer install --no-interaction --no-progress
+            - name: "Install dependencies"
+              run: composer install --prefer-dist --no-progress --no-suggest
 
-            - name: Install PHPUnit
-              id: install
-              run: vendor/bin/simple-phpunit install
+            - name: "Install PHP_CodeSniffer"
+              run: composer global require "squizlabs/php_codesniffer=*"
 
-            - name: Lint YAML files
-              if: always() && steps.install.outcome == 'success'
-              run: ./bin/console lint:yaml config --parse-tags
-
-            - name: Lint Twig templates
-              if: always() && steps.install.outcome == 'success'
-              run: ./bin/console lint:twig templates --env=prod
-
-            - name: Lint XLIFF translations
-              if: always() && steps.install.outcome == 'success'
-              run: ./bin/console lint:xliff translations
-
-            - name: Lint Parameters and Services
-              if: always() && steps.install.outcome == 'success'
-              run: ./bin/console lint:container --no-debug
-
-            - name: Lint Doctrine entities
-              if: always() && steps.install.outcome == 'success'
-              run: ./bin/console doctrine:schema:validate --skip-sync -vvv --no-interaction
-
-            - name: Lint Composer config
-              if: always() && steps.install.outcome == 'success'
-              run: composer validate --strict
-
-            - name: Download Symfony CLI
-              if: always() && steps.install.outcome == 'success'
-              run: wget https://get.symfony.com/cli/installer -O - | bash
-
-            - name: Check if any dependencies are compromised
-              if: always() && steps.install.outcome == 'success'
-              run: /home/runner/.symfony/bin/symfony check:security
-
-            - name: Run PHPStan
-              if: always() && steps.install.outcome == 'success'
-              run: ./vendor/bin/phpstan analyze
+            - name: "Run PHP_CodeSniffer"
+              run: ~/.composer/vendor/bin/phpcs --standard=PSR12 src/
