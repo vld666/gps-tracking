@@ -1,4 +1,4 @@
-name: "Tests and Lint"
+name: "Lint"
 
 on:
     pull_request:
@@ -14,90 +14,49 @@ env:
     SYMFONY_DEPRECATIONS_HELPER: 7
 
 jobs:
-    test:
-        name: "${{ matrix.operating-system }} / PHP ${{ matrix.php-version }}"
-        runs-on: ${{ matrix.operating-system }}
-        continue-on-error: false
-
-        strategy:
-            matrix:
-                operating-system: ['ubuntu-latest', 'macos-latest', 'windows-latest']
-                php-version: ['8.2']
-
-        steps:
-            - name: "Checkout code"
-              uses: actions/checkout@v2.3.3
-
-            - name: "Install PHP with extensions"
-              uses: shivammathur/setup-php@2.7.0
-              with:
-                  coverage: "none"
-                  extensions: "intl, mbstring, pdo_sqlite"
-                  php-version: ${{ matrix.php-version }}
-                  tools: composer:v2
-
-            - name: "Add PHPUnit matcher"
-              run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
-
-            - name: "Set composer cache directory"
-              id: composer-cache
-              run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-            - name: "Cache composer"
-              uses: actions/cache@v2.1.2
-              with:
-                  path: ${{ steps.composer-cache.outputs.dir }}
-                  key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('composer.json') }}
-                  restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-composer-
-
-            - name: "Install dependencies"
-              run: composer install --prefer-dist --no-progress --no-suggest
-
-            - name: "Install PHPUnit"
-              run: vendor/bin/simple-phpunit install
-
-            - name: "PHPUnit version"
-              run: vendor/bin/simple-phpunit --version
-
-            - name: "Run tests"
-              run: vendor/bin/simple-phpunit ${{ env.PHPUNIT_FLAGS }}
-
     lint:
         name: "Lint / PHP ${{ matrix.php-version }}"
         runs-on: ubuntu-latest
 
         strategy:
             matrix:
-                php-version: ['8.2']
+                php-version: [ '8.2' ]
 
         steps:
-            - name: "Checkout code"
-              uses: actions/checkout@v2.3.3
+            -   name: "Checkout code"
+                uses: actions/checkout@v2.3.3
 
-            - name: "Install PHP with extensions"
-              uses: shivammathur/setup-php@2.7.0
-              with:
-                  coverage: "none"
-                  extensions: "intl, mbstring, pdo_sqlite"
-                  php-version: ${{ matrix.php-version }}
-                  tools: composer:v2
+            -   name: "Install PHP with extensions"
+                uses: shivammathur/setup-php@2.7.0
+                with:
+                    coverage: "none"
+                    extensions: "intl, mbstring, pdo_sqlite"
+                    php-version: ${{ matrix.php-version }}
+                    tools: composer:v2
 
-            - name: "Set composer cache directory"
-              id: composer-cache
-              run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+            -   name: "Set composer cache directory"
+                id: composer-cache
+                run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
-            - name: "Cache composer"
-              uses: actions/cache@v2.1.2
-              with:
-                  path: ${{ steps.composer-cache.outputs.dir }}
-                  key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('composer.json') }}
-                  restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-composer-
+            -   name: "Cache composer"
+                uses: actions/cache@v2.1.2
+                with:
+                    path: ${{ steps.composer-cache.outputs.dir }}
+                    key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('composer.json') }}
+                    restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-composer-
 
-            - name: "Install dependencies"
-              run: composer install --prefer-dist --no-progress --no-suggest
+            -   name: "Install dependencies"
+                run: composer install --prefer-dist --no-progress --no-suggest
 
-            - name: "Install PHP_CodeSniffer"
-              run: composer global require "squizlabs/php_codesniffer=*"
+            -   name: "Install PHP_CodeSniffer"
+                run: composer global require "squizlabs/php_codesniffer=*"
 
-            - name: "Run PHP_CodeSniffer"
-              run: ~/.composer/vendor/bin/phpcs --standard=PSR12 src/
+            -   name: "Run PHP_CodeSniffer"
+                run: ~/.composer/vendor/bin/phpcs --standard=PSR12 src/
+
+            -   name: "Install PHP_CodeSniffer"
+                run: composer global require "squizlabs/php_codesniffer=*"
+
+            -   name: "Run PHP_CodeSniffer"
+                run: ~/.composer/vendor/bin/phpcs --standard=PSR12 src/
+
