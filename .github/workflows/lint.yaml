@@ -20,10 +20,10 @@ jobs:
 
         steps:
             - name: "Checkout code"
-              uses: actions/checkout@v2.3.3
+              uses: actions/checkout@v2
 
             - name: "Install PHP with extensions"
-              uses: shivammathur/setup-php@2.7.0
+              uses: shivammathur/setup-php@v2
               with:
                   coverage: "none"
                   extensions: "intl, mbstring, pdo_sqlite"
@@ -35,7 +35,7 @@ jobs:
               run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
             - name: "Cache composer"
-              uses: actions/cache@v2.1.2
+              uses: actions/cache@v2
               with:
                   path: ${{ steps.composer-cache.outputs.dir }}
                   key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('composer.json') }}
@@ -53,16 +53,14 @@ jobs:
             - name: "Run PHP_CodeSniffer and Auto-fix"
               run: ~/.composer/vendor/bin/phpcbf --standard=PSR12 src/
 
-            - name: "Run PHP_CodeSniffer"
-              run: ~/.composer/vendor/bin/phpcs --standard=PSR12 src/
-
             - name: "Run PHPStan"
               run: ./vendor/bin/phpstan analyze
 
             - name: "Run PHPUnit"
               run: ./vendor/bin/phpunit
 
+            - name: "Install PHP CS Fixer"
+              run: composer require --dev friendsofphp/php-cs-fixer
+
             - name: "Run PHP CS Fixer"
-              uses: oskarstark/php-cs-fixer-ga@v1
-              with:
-                  args: --diff --dry-run src/
+              run: vendor/bin/php-cs-fixer fix --diff --dry-run src/
