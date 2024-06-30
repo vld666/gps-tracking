@@ -1,4 +1,4 @@
-name: "Lint"
+name: "Lint and Analyze"
 
 on:
     pull_request:
@@ -9,87 +9,60 @@ on:
 env:
     fail-fast: true
 
-permissions:
-    contents: read
-
 jobs:
-    php-cs-fixer:
-        name: PHP-CS-Fixer
+    lint:
+        name: "Lint and Analyze / PHP ${{ matrix.php-version }}"
         runs-on: ubuntu-latest
-        steps:
-            - name: "Checkout code"
-              uses: actions/checkout@v4
 
-            - name: PHP-CS-Fixer
-              uses: docker://oskarstark/php-cs-fixer-ga
-              with:
-                  args: --diff --dry-run
-
-    linters:
-        name: Linters
-        runs-on: ubuntu-latest
         strategy:
             matrix:
                 php-version: ['8.2']
 
         steps:
             - name: "Checkout code"
-              uses: actions/checkout@v4
+              uses: actions/checkout@v2.3.3
 
             - name: "Install PHP with extensions"
-              uses: shivammathur/setup-php@v2
+              uses: shivammathur/setup-php@2.7.0
               with:
                   coverage: "none"
-                  extensions: intl
+                  extensions: "intl, mbstring, pdo_sqlite"
                   php-version: ${{ matrix.php-version }}
                   tools: composer:v2
 
             - name: "Set composer cache directory"
               id: composer-cache
-              run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+              run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
             - name: "Cache composer"
-              uses: actions/cache@v4
+              uses: actions/cache@v2.1.2
               with:
                   path: ${{ steps.composer-cache.outputs.dir }}
-                  key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
-                  restore-keys: ${{ runner.os }}-composer-
+                  key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('composer.json') }}
+                  restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-composer-
 
             - name: "Install dependencies"
-              run: composer install --ansi --no-interaction --no-progress
+              run: composer install --prefer-dist --no-progress --no-suggest
 
-            - name: Install PHPUnit
-              id: install
-              run: vendor/bin/simple-phpunit install
+            - name: "Install PHP_CodeSniffer"
+              run: composer global require "squizlabs/php_codesniffer=*"
 
-            - name: Lint YAML files
-              if: always() && steps.install.outcome == 'success'
-              run: ./bin/console lint:yaml config --parse-tags
+            - name: "Run PHP_CodeSniffer"
+              run: ~/.composer/vendor/bin/phpcs --standard=PSR12 src/
 
-            - name: Lint Twig templates
-              if: always() && steps.install.outcome == 'success'
-              run: ./bin/console lint:twig templates --env=prod
+            - name: "Run PHP_CodeSniffer and Auto-fix"
+              run: ~/.composer/vendor/bin/phpcbf --standard=PSR12 src/
 
-            - name: Lint XLIFF translations
-              if: always() && steps.install.outcome == 'success'
-              run: ./bin/console lint:xliff translations
+            - name: "Run PHP_CodeSniffer"
+              run: ~/.composer/vendor/bin/phpcs --standard=PSR12 src/
 
-            - name: Lint Parameters and Services
-              if: always() && steps.install.outcome == 'success'
-              run: ./bin/console lint:container --no-debug
-
-            - name: Lint Doctrine entities
-              if: always() && steps.install.outcome == 'success'
-              run: ./bin/console doctrine:schema:validate --skip-sync -vvv --no-interaction
-
-            - name: Lint Composer config
-              if: always() && steps.install.outcome == 'success'
-              run: composer validate --strict
-
-            - name: Check if any dependencies are compromised
-              if: always() && steps.install.outcome == 'success'
-              run: composer audit
-
-            - name: Run PHPStan
-              if: always() && steps.install.outcome == 'success'
+            - name: "Run PHPStan"
               run: ./vendor/bin/phpstan analyze
+
+            - name: "Run PHPUnit"
+              run: ./vendor/bin/phpunit
+
+            - name: "Run PHP CS Fixer"
+              uses: oskarstark/php-cs-fixer-ga@v1
+              with:
+                  args: --diff --dry-run src/
