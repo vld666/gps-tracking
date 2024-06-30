@@ -8,10 +8,6 @@ on:
 
 env:
     fail-fast: true
-    PHPUNIT_FLAGS: "-v"
-    SYMFONY_PHPUNIT_DIR: "$HOME/symfony-bridge/.phpunit"
-    SYMFONY_REQUIRE: ">=6.0"
-    SYMFONY_DEPRECATIONS_HELPER: 7
 
 jobs:
     lint:
@@ -23,40 +19,39 @@ jobs:
                 php-version: [ '8.2' ]
 
         steps:
-            -   name: "Checkout code"
-                uses: actions/checkout@v2.3.3
+            - name: "Checkout code"
+              uses: actions/checkout@v2.3.3
 
-            -   name: "Install PHP with extensions"
-                uses: shivammathur/setup-php@2.7.0
-                with:
-                    coverage: "none"
-                    extensions: "intl, mbstring, pdo_sqlite"
-                    php-version: ${{ matrix.php-version }}
-                    tools: composer:v2
+            - name: "Install PHP with extensions"
+              uses: shivammathur/setup-php@2.7.0
+              with:
+                  coverage: "none"
+                  extensions: "intl, mbstring, pdo_sqlite"
+                  php-version: ${{ matrix.php-version }}
+                  tools: composer:v2
 
-            -   name: "Set composer cache directory"
-                id: composer-cache
-                run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+            - name: "Set composer cache directory"
+              id: composer-cache
+              run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
-            -   name: "Cache composer"
-                uses: actions/cache@v2.1.2
-                with:
-                    path: ${{ steps.composer-cache.outputs.dir }}
-                    key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('composer.json') }}
-                    restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-composer-
+            - name: "Cache composer"
+              uses: actions/cache@v2.1.2
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('composer.json') }}
+                  restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-composer-
 
-            -   name: "Install dependencies"
-                run: composer install --prefer-dist --no-progress --no-suggest
+            - name: "Install dependencies"
+              run: composer install --prefer-dist --no-progress --no-suggest
 
-            -   name: "Install PHP_CodeSniffer"
-                run: composer global require "squizlabs/php_codesniffer=*"
+            - name: "Install PHP_CodeSniffer"
+              run: composer global require "squizlabs/php_codesniffer=*"
 
-            -   name: "Run PHP_CodeSniffer"
-                run: ~/.composer/vendor/bin/phpcs --standard=PSR12 src/
+            - name: "Run PHP_CodeSniffer"
+              run: ~/.composer/vendor/bin/phpcs --standard=PSR12 src/
 
-            -   name: "Install PHP_CodeSniffer"
-                run: composer global require "squizlabs/php_codesniffer=*"
+            - name: "Run PHP_CodeSniffer and Auto-fix"
+              run: ~/.composer/vendor/bin/phpcbf --standard=PSR12 src/
 
-            -   name: "Run PHP_CodeSniffer"
-                run: ~/.composer/vendor/bin/phpcs --standard=PSR12 src/
-
+            - name: "Run PHP_CodeSniffer"
+              run: ~/.composer/vendor/bin/phpcs --standard=PSR12 src/
