@@ -37,7 +37,7 @@ class GpsCoordinateTest extends TestCase
         $this->assertEquals($altitude, $gpsCoordinate->getAltitude());
     }
 
-    public function testLatitude()
+    public function testLatitude() : void
     {
         $gpsCoordinate = new GpsCoordinate();
         $latitude = '45.12345678';
@@ -46,7 +46,7 @@ class GpsCoordinateTest extends TestCase
         $this->assertSame($latitude, $gpsCoordinate->getLatitude());
     }
 
-    public function testLongitude()
+    public function testLongitude() : void
     {
         $gpsCoordinate = new GpsCoordinate();
         $longitude = '90.12345678';
@@ -55,7 +55,7 @@ class GpsCoordinateTest extends TestCase
         $this->assertSame($longitude, $gpsCoordinate->getLongitude());
     }
 
-    public function testGpsTime()
+    public function testGpsTime() : void
     {
         $gpsCoordinate = new GpsCoordinate();
         $gpsTime = new \DateTime('now');
@@ -64,7 +64,7 @@ class GpsCoordinateTest extends TestCase
         $this->assertSame($gpsTime, $gpsCoordinate->getGpsTime());
     }
 
-    public function testSatellitesNo()
+    public function testSatellitesNo() : void
     {
         $gpsCoordinate = new GpsCoordinate();
         $satellitesNo = 8;
@@ -73,7 +73,7 @@ class GpsCoordinateTest extends TestCase
         $this->assertSame($satellitesNo, $gpsCoordinate->getSatellitesNo());
     }
 
-    public function testAltitude()
+    public function testAltitude() : void
     {
         $gpsCoordinate = new GpsCoordinate();
         $altitude = 1234;
@@ -82,7 +82,7 @@ class GpsCoordinateTest extends TestCase
         $this->assertSame($altitude, $gpsCoordinate->getAltitude());
     }
 
-    public function testNullValues()
+    public function testNullValues() : void
     {
         $gpsCoordinate = new GpsCoordinate();
 
@@ -93,19 +93,21 @@ class GpsCoordinateTest extends TestCase
         $this->assertNull($gpsCoordinate->getAltitude());
     }
 
-    public function testStringValuesForNumericFields()
+    public function testStringValuesForNumericFields() : void
     {
         $gpsCoordinate = new GpsCoordinate();
 
         $this->expectException(\TypeError::class);
+        // @phpstan-ignore-next-line
         $gpsCoordinate->setSatellitesNo('eight');
     }
 
-    public function testInvalidDateFormat()
+    public function testInvalidDateFormat() : void
     {
         $gpsCoordinate = new GpsCoordinate();
 
         $this->expectException(\TypeError::class);
+        // @phpstan-ignore-next-line
         $gpsCoordinate->setGpsTime('invalid date format');
     }
 }
