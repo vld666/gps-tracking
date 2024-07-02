@@ -20,8 +20,16 @@
                 <tbody>
                 {% for coordinate in gpsCoordinates %}
                     <tr>
-                        <td>{{ coordinate.latitude }}</td>
-                        <td>{{ coordinate.longitude }}</td>
+                        <td>
+                            <a href="" class="style" data-source="[{{coordinate.latitude}}, {{ coordinate.longitude }}]">
+                            {{ coordinate.latitude }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="" class="style" data-source="[{{coordinate.latitude}}, {{ coordinate.longitude }}]">
+                                {{ coordinate.longitude }}
+                            </a>
+                        </td>
                         <td>{{ coordinate.gpsTime|date }}</td>
                         <td>{{ coordinate.satellitesNo }}</td>
                         <td>{{ coordinate.altitude }}</td>
@@ -40,16 +48,17 @@
 {% block javascripts %}
     {{ parent() }}
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js' crossorigin="anonymous"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
 
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoidmxkNjY2IiwiYSI6ImNsdGN1Y2FiOTIzMHAybXF1anJqZ3R6cGEifQ.JrV69OaLK_F9U2dfEJaJSg';
         var map = new mapboxgl.Map({
             container: 'map',
-            //style: 'mapbox://styles/mapbox/navigation-night-v1', // style URL
-            style: 'mapbox://styles/mapbox/streets-v12', // style URL
+            style: 'mapbox://styles/mapbox/dark-v11', // style URL
+            //style: 'mapbox://styles/mapbox/streets-v12', // style URL
             center: [{{ currentPosition.longitude }}, {{ currentPosition.latitude }}], // starting position
             //center: [26.15478740, 44.37819560], // starting position
-            zoom: 15 // starting zoom
+            zoom: 10 // starting zoom
         });
 
         map.addControl(new mapboxgl.NavigationControl())
